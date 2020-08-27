@@ -4,5 +4,6 @@ CODES/MReconKCL
 CODES/sdc3_nrz_11aug
 DATA_PH
 *.mat
+*.asv
 *.code-workspace
 .vscode*
