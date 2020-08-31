@@ -26,6 +26,31 @@ x = [x1(:),x2(:)];
 
 for coil = 1:ncoil
     Y(:,coil) = reshape(squeeze(phase_phyllo(:,:,:,coil)),[nspokes*ninterleaf 1]);
+    
+    % check wether the phase plane goes through the +pi plane by checking
+    % if there are points that are above 3 and also points below -3
+    close_to_top = false;
+    close_to_bottom = false;
+    for i = 1:nspokes*ninterleaf
+        if Y(i,coil) < -3
+            close_to_bottom = true;
+        end
+    end
+    for i = 1:nspokes*ninterleaf
+        if Y(i,coil) > 3
+            close_to_top = true;
+        end
+    end
+    if close_to_top && close_to_bottom
+        % put everthing that is negative above zero
+        for i = 1:nspokes*ninterleaf
+            if Y(i,coil) < 0
+                Y(i,coil) = Y(i,coil) + 2*pi;
+            end
+        end
+    end
+    
+    
     [coeffs3D(:,coil),R,J,CovB,MSE] = nlinfit(x,Y(:,coil),errmodel3D,[0,0,0,0],opts);
     Yfit(:,coil) = errmodel3D(coeffs3D(:,coil),x);
     corrfact = coeffs3D(1,coil)*kpos_phyllo(:,:,1) + ...

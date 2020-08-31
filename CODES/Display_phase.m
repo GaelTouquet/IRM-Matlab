@@ -18,9 +18,10 @@ if coil == 0
     for icoil = 1:ncoil
         Y(:,icoil) = reshape(squeeze(phase_phyllo(:,:,:,icoil)),[nspokes*ninterleaf 1]);
         subplot(3,9,icoil); scatter3(x(:,1),x(:,2),Y(:,icoil),1,Y(:,icoil));
-        xlabel('phi (rad)');ylabel('theta (rad)');zlabel('phase (rad)'); title(['Phyllo - Coil #' num2str(coil)]); % caxis([-3.1416/4 3.1415/4]);
+        xlabel('phi (rad)');ylabel('theta (rad)');zlabel('phase (rad)'); title(['Phyllo - Coil #' num2str(icoil)]); % caxis([-3.1416/4 3.1415/4]);
     end
 else
+    coil = 1
     Y(:,coil) = reshape(squeeze(phase_phyllo(:,:,:,coil)),[nspokes*ninterleaf 1]);
     scatter3(x(:,1),x(:,2),Y(:,coil),1,Y(:,coil));
     xlabel('phi (rad)');ylabel('theta (rad)');zlabel('phase (rad)'); title(['Phyllo - Coil #' num2str(coil)]); % caxis([-3.1416/4 3.1415/4]);
