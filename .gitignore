@@ -3,6 +3,7 @@ CODES/imagine
 CODES/MReconKCL
 CODES/sdc3_nrz_11aug
 DATA_PH
+outputs
 *.mat
 *.asv
 *.code-workspace
