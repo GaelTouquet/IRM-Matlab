@@ -22,18 +22,7 @@ kdata_phyllo = kdata; k_phyllo = k; dcf_phyllo = dcf; chims_phyllo = squeeze(cha
 
 
 %% compute the phase of the central point of k-space
-phase_phyllo = angle(kdata_phyllo(size(kdata_phyllo,1)/2,:,:,:));
-
-[phi_phyllo, theta_phyllo, kpos_phyllo] = compute_phyllo_angles(kdata_phyllo,0);
-
-figure;
-x1 = rem(reshape(phi_phyllo,[ntviews*nz 1]),pi*2); x2 = reshape(theta_phyllo,[ntviews*nz 1]); x = [x1(:),x2(:)];
-
-for coil = 1:27
-    Y(:,coil) = reshape(squeeze(phase_phyllo(:,:,:,coil)),[ntviews*nz 1]);
-    subplot(3,9,coil); scatter3(x(:,1),x(:,2),Y(:,coil),1,Y(:,coil));
-    xlabel('phi (rad)');ylabel('theta (rad)');zlabel('phase (rad)'); title(['Phyllo - Coil #' num2str(coil)]); % caxis([-3.1416/4 3.1415/4]);
-end
+Display_phase(kdata_phyllo,1);
 %%  
 %!!!TODO find a way to make the phase planes fittable (for now when plane
 %goes through +/-pi it is not fittable as it is not continuous anymore
@@ -49,59 +38,50 @@ end
 % end
 
 %% try the error model for each coil
-figure;
-for coil = 1:1
-%     Y = reshape(squeeze(phase_phyllo(:,:,:,coil)),[ntviews*nz 1]); Y = Y(:);
-    errmodel3D = @(coeffs,x) coeffs(1).*cos(x(:,1)).*sin(x(:,2)) + ...
-        coeffs(2).*sin(x(:,1)).*sin(x(:,2)) + coeffs(3).*cos(x(:,2)) + coeffs(4);
-%     following mode was tried but doesn't fit, probably because iti is a
-%     non-linear model in a linear fit
-%     errmodel3D = @(coeffs,x) mod( coeffs(1).*cos(x(:,1)).*sin(x(:,2)) + ...
-%     coeffs(2).*sin(x(:,1)).*sin(x(:,2)) + coeffs(3).*cos(x(:,2)) + coeffs(4),2*pi)-pi;
-    opts = statset('nlinfit');
-    opts.RobustWgtFun = 'andrews';
-    opts.TolFun = 10^-12;
-    opts.MaxFunEvals = 10^5;
-    [coeffs3D(:,coil),R,J,CovB,MSE] = nlinfit(x,Y(:,coil),errmodel3D,[0,0,0,0],opts);
-    Yfit(:,coil) = errmodel3D(coeffs3D(:,coil),x);
-    
-    % plotting time
-    subplot(240+coil); scatter3(x(:,1),x(:,2),Y(:,coil),10,Y(:,coil));
-    hold on
-    scatter3(x(:,1),x(:,2),Yfit(:,coil),'*k');
-    xlabel('phi (rad)');ylabel('theta (rad)');zlabel('phase (rad)'); view(-25,10); title(['Phyllo - Coil #' num2str(coil)]);colorbar;
-%     figure;scatter3(x(:,1),x(:,2),Y);
-%     hold on
-%     scatter3(x(:,1),x(:,2),Yfit,'*k');
-%     clear Y Yfit
-end
+
+kdata_corr = Phase_correction(kdata_phyllo);
+Display_phase(kdata_corr,1);
 
 %% uncorrected image
-coil=1;
-k = reshape(k_phyllo,[nx*ntviews*nz 3]);
-dcf = reshape(dcf_phyllo,[nx*ntviews*nz 1]);
-precision = 1E-2;
-siz = [180 180 180];
-rawdata = reshape(kdata_phyllo,[nx*ntviews*nz nc]);
-uncorr_image(:,:,:,coil) = nufft3_type1(double(k), double(rawdata(:,coil).*dcf), siz, +1,precision);
-clear rawdata
+% coil=1;
+% k = reshape(k_phyllo,[nx*ntviews*nz 3]);
+% dcf = reshape(dcf_phyllo,[nx*ntviews*nz 1]);
+% precision = 1E-2;
+% siz = [180 180 180];
+% rawdata = reshape(kdata_phyllo,[nx*ntviews*nz nc]);
+% uncorr_image(:,:,:,coil) = nufft3_type1(double(k), double(rawdata(:,coil).*dcf), siz, +1,precision);
+% clear rawdata
 %% correction
-corrfact = coeffs3D(1,coil)*kpos_phyllo(:,:,1) + coeffs3D(2,coil)*kpos_phyllo(:,:,2) + coeffs3D(3,coil)*kpos_phyllo(:,:,3);% + coeffs3D(4,coil);
-corrfact = permute(corrfact,[3 1 2]);
-corrfact = repmat(corrfact,[272 1 1]);
-Scorr(:,:,:,coil) = kdata_phyllo(:,:,:,coil).*exp(-i*corrfact);
-clear corrfact
-corrected_S(:,coil) = reshape(Scorr(:,:,:,coil),[nx*ntviews*nz 1]);
-clear Scorr
-%% corrected image
+% corrfact = coeffs3D(1,coil)*kpos_phyllo(:,:,1) + coeffs3D(2,coil)*kpos_phyllo(:,:,2) + coeffs3D(3,coil)*kpos_phyllo(:,:,3) + coeffs3D(4,coil);
+% corrfact = permute(corrfact,[3 1 2]);
+% corrfact = repmat(corrfact,[272 1 1]);
+% Scorr(:,:,:,coil) = kdata_phyllo(:,:,:,coil).*exp(-i*corrfact);
+% clear corrfact
+% corrected_S(:,coil) = reshape(Scorr(:,:,:,coil),[nx*ntviews*nz 1]);
 
-corr_image(:,:,:,coil) = nufft3_type1(double(k), double(corrected_S(:,coil).*dcf), siz, +1,precision);
+%% 
+% 
+% phase_corr = angle(Scorr(size(Scorr,1)/2,:,:,:));
+% [phi_corr, theta_corr, kpos_corr] = compute_phyllo_angles(Scorr,0);
+% % figure;
+% x1 = rem(reshape(phi_corr,[ntviews*nz 1]),pi*2); x2 = reshape(theta_corr,[ntviews*nz 1]); x = [x1(:),x2(:)];
+% 
+% for coil = 1:1
+%     Y(:,coil) = reshape(squeeze(phase_corr(:,:,:,coil)),[ntviews*nz 1]);
+%     subplot(1,1,1); scatter3(x(:,1),x(:,2),Y(:,coil),1,Y(:,coil));
+%     xlabel('phi (rad)');ylabel('theta (rad)');zlabel('phase (rad)'); title(['Phyllo - Coil #' num2str(coil)]); % caxis([-3.1416/4 3.1415/4]);
+% end
+%% corrected image
+% 
+% corr_image(:,:,:,coil) = nufft3_type1(double(k), double(corrected_S(:,coil).*dcf), siz, +1,precision);
 
 
 %% display images
-imagine(uncorr_image(:,:,:,1));
-imagine(corr_image(:,:,:,1));
+% imagine(uncorr_image(:,:,:,1));
+% imagine(corr_image(:,:,:,1));
 %% 
+
+
 
 
 % corrfact = permute(corrfact,[3 1 2]);
