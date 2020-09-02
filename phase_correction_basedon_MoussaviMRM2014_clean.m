@@ -22,7 +22,7 @@ kdata_phyllo = kdata; k_phyllo = k; dcf_phyllo = dcf; chims_phyllo = squeeze(cha
 
 
 %% compute the phase of the central point of k-space
-Display_phase(kdata_phyllo,0);
+% Display_phase(kdata_phyllo,26, false);
 %%  
 %!!!TODO find a way to make the phase planes fittable (for now when plane
 %goes through +/-pi it is not fittable as it is not continuous anymore
@@ -39,8 +39,8 @@ Display_phase(kdata_phyllo,0);
 
 %% try the error model for each coil
 
-kdata_corr = Phase_correction(kdata_phyllo);
-Display_phase(kdata_corr,0);
+[kdata_corr, coeffs3D] = Phase_correction(kdata_phyllo, true, true);
+Display_phase(kdata_corr,0,false);
 
 %% uncorrected image
 % coil=1;
