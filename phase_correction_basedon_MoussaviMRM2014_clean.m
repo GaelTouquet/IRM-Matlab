@@ -21,66 +21,47 @@ kdata_phyllo = kdata; k_phyllo = k; dcf_phyllo = dcf; chims_phyllo = squeeze(cha
 [nx,ntviews,nz,nc,npc] = size(kdata_phyllo);
 
 
+k = reshape(k_phyllo,[nx*ntviews*nz 3]);
+dcf = reshape(dcf_phyllo,[nx*ntviews*nz 1]);
+precision = 1E-2;
+siz = [180 180 180];
+
 %% compute the phase of the central point of k-space
-% Display_phase(kdata_phyllo,26, false);
-%%  
-%!!!TODO find a way to make the phase planes fittable (for now when plane
-%goes through +/-pi it is not fittable as it is not continuous anymore
-% phase_phyllo = arrayfun(@(x) (x<=0).*(x+2*pi) + (x>0).*(x),phase_phyllo)
-% 
-% figure;
-% x1 = rem(reshape(phi_phyllo,[ntviews*nz 1]),pi*2); x2 = reshape(theta_phyllo,[ntviews*nz 1]); x = [x1(:),x2(:)];
-% 
-% for coil = 1:8
-%     Y(:,coil) = reshape(squeeze(phase_phyllo(:,:,:,coil)),[ntviews*nz 1]);
-%     subplot(240+coil); scatter3(x(:,1),x(:,2),Y(:,coil),10,Y(:,coil));
-%     xlabel('phi (rad)');ylabel('theta (rad)');zlabel('phase (rad)'); view(-25,10); title(['Phyllo - Coil #' num2str(coil)]);colorbar; % caxis([-3.1416/4 3.1415/4]);
-% end
+Display_phase(kdata_phyllo,0, false);
 
 %% try the error model for each coil
+[kdata_corr_global, coeffs3D_global] = Phase_correction(kdata_phyllo, false, true);
+Display_phase(kdata_corr_global,0,false);
 
-[kdata_corr, coeffs3D] = Phase_correction(kdata_phyllo, true, true);
-Display_phase(kdata_corr,0,false);
+%% try the error model for each spoke group of each coil
+[kdata_corr_spokes, coeffs3D_spokes] = Phase_correction(kdata_phyllo, true, true);
+Display_phase(kdata_corr_spokes,0,false);
 
-%% uncorrected image
-% coil=1;
-% k = reshape(k_phyllo,[nx*ntviews*nz 3]);
-% dcf = reshape(dcf_phyllo,[nx*ntviews*nz 1]);
-% precision = 1E-2;
-% siz = [180 180 180];
-% rawdata = reshape(kdata_phyllo,[nx*ntviews*nz nc]);
-% uncorr_image(:,:,:,coil) = nufft3_type1(double(k), double(rawdata(:,coil).*dcf), siz, +1,precision);
-% clear rawdata
-%% correction
-% corrfact = coeffs3D(1,coil)*kpos_phyllo(:,:,1) + coeffs3D(2,coil)*kpos_phyllo(:,:,2) + coeffs3D(3,coil)*kpos_phyllo(:,:,3) + coeffs3D(4,coil);
-% corrfact = permute(corrfact,[3 1 2]);
-% corrfact = repmat(corrfact,[272 1 1]);
-% Scorr(:,:,:,coil) = kdata_phyllo(:,:,:,coil).*exp(-i*corrfact);
-% clear corrfact
-% corrected_S(:,coil) = reshape(Scorr(:,:,:,coil),[nx*ntviews*nz 1]);
+%% Image without correction
 
-%% 
-% 
-% phase_corr = angle(Scorr(size(Scorr,1)/2,:,:,:));
-% [phi_corr, theta_corr, kpos_corr] = compute_phyllo_angles(Scorr,0);
-% % figure;
-% x1 = rem(reshape(phi_corr,[ntviews*nz 1]),pi*2); x2 = reshape(theta_corr,[ntviews*nz 1]); x = [x1(:),x2(:)];
-% 
-% for coil = 1:1
-%     Y(:,coil) = reshape(squeeze(phase_corr(:,:,:,coil)),[ntviews*nz 1]);
-%     subplot(1,1,1); scatter3(x(:,1),x(:,2),Y(:,coil),1,Y(:,coil));
-%     xlabel('phi (rad)');ylabel('theta (rad)');zlabel('phase (rad)'); title(['Phyllo - Coil #' num2str(coil)]); % caxis([-3.1416/4 3.1415/4]);
-% end
-%% corrected image
-% 
-% corr_image(:,:,:,coil) = nufft3_type1(double(k), double(corrected_S(:,coil).*dcf), siz, +1,precision);
+rawdata = reshape(kdata_phyllo,[nx*ntviews*nz nc]);
+for coil = 1:nc
+    k2im_uncorr(:,:,:,coil) = nufft3_type1(double(k), double(rawdata(:,coil).*dcf), siz, +1,precision);
+end
+uncorr_images = sum(k2im_uncorr .* conj(csm),4)./coil_rss;
 
+%% Image with global correction
 
-%% display images
-% imagine(uncorr_image(:,:,:,1));
-% imagine(corr_image(:,:,:,1));
-%% 
+rawdata = reshape(kdata_corr_global,[nx*ntviews*nz nc]);
+for coil = 1:nc
+    k2im_global(:,:,:,coil) = nufft3_type1(double(k), double(rawdata(:,coil).*dcf), siz, +1,precision);
+end
+corr_global_images = sum(k2im_global .* conj(csm),4)./coil_rss;
 
+%% Image with spoke-based correction
+
+rawdata = reshape(kdata_corr_spokes,[nx*ntviews*nz nc]);
+for coil = 1:nc
+    k2im_spokes(:,:,:,coil) = nufft3_type1(double(k), double(rawdata(:,coil).*dcf), siz, +1,precision);
+end
+corr_spokes_images = sum(k2im_spokes .* conj(csm),4)./coil_rss;
+
+%% Backup
 
 
 
