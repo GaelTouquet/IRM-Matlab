@@ -61,8 +61,25 @@ for coil = 1:nc
 end
 corr_spokes_images = sum(k2im_spokes .* conj(csm),4)./coil_rss;
 
+%% Try Giese
+figure;
+Y = reshape(reshape(abs(central_amp(:,:,:,1)),[nx nz*ntviews 1]),[nx*nz*ntviews 1]);
+x1 = reshape(repmat(permute(rem(reshape(phi_phyllo(:,:),[ntviews*ninterleaf 1]),pi*2),[3 1 2]),[272 1 1]),[nx*nz*ntviews 1]);
+x2 = reshape(repmat(permute(rem(reshape(theta_phyllo(:,:),[ninterleaf*ntviews 1]),pi*2),[3 1 2]),[272 1 1]),[nx*nz*ntviews 1]);
+scatter3(x1,x2,Y,0.5)
+hold on;
+% figure;
+Y = reshape(reshape(abs(central_amp(136,:,:,1)),[nz*ntviews 1]),[nz*ntviews 1]);
+x1 = reshape(repmat(permute(rem(reshape(phi_phyllo(:,:),[ninterleaf*ntviews 1]),pi*2),[3 1 2]),[1 1 1]),[nz*ntviews 1]);
+x2 = reshape(repmat(permute(rem(reshape(theta_phyllo(:,:),[ninterleaf*ntviews 1]),pi*2),[3 1 2]),[1 1 1]),[nz*ntviews 1]);
+scatter3(x1,x2,Y,1,'r')
+hold on;
+Y = reshape(reshape(abs(central_amp(135,:,:,1)),[nz*ntviews 1]),[nz*ntviews 1]);
+x1 = reshape(repmat(permute(rem(reshape(phi_phyllo(:,:),[ninterleaf*ntviews 1]),pi*2),[3 1 2]),[1 1 1]),[nz*ntviews 1]);
+x2 = reshape(repmat(permute(rem(reshape(theta_phyllo(:,:),[ninterleaf*ntviews 1]),pi*2),[3 1 2]),[1 1 1]),[nz*ntviews 1]);
+scatter3(x1,x2,Y,1,'g')
+hold off;
 %% Backup
-
 
 
 % corrfact = permute(corrfact,[3 1 2]);

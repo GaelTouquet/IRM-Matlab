@@ -1,13 +1,14 @@
-addpath(genpath('C:\Users\gaelr\OneDrive\Documents\MATLAB\codes_4_gael\CODES\'))
+addpath(genpath('.\CODES\'))
 
 %% Load data
-datafolder = 'C:\Users\gaelr\OneDrive\Documents\MATLAB\codes_4_gael\DATA_PH\';
-filename = 'ph_11072019_2035184_5_2_wip_phyllo_classicV4';
+datafolder = '.\DATA_PH\';
+filename = 'ph_11072019_2035184_5_2_wip_phyllo_classicV4';%'ph_11072019_2035184_5_2_wip_phyllo_classicV4';
 
 % load([datafolder filename '_MRobject_with_data'])
 % kdata = squeeze(MR.Data);
 load([datafolder filename '_channel_images_regrid'])
 load([datafolder filename '_kdata'])
+kdata = kdata(:,:,:,:,1);
 load([datafolder filename '_k'])
 % load([datafolder filename '_dcf']) % obtenue par une autre methode que celle dans le code ci-dessous
 
@@ -16,11 +17,21 @@ load([datafolder filename '_k'])
 %% Load Coil sensitivities
 % load([datafolder filename '_Sobject_recRes']) 
 % csm = S.Sensitivity;
-load([datafolder filename '_coils'])
+load([datafolder 'ph_11072019_2035184_5_2_wip_phyllo_classicV4' '_coils'])
 csm = csm/max(csm(:));% normalize the coil map intensities
 coil_rss = (sum(csm.*conj(csm),4));
 
-
+% %% choose recon resolution
+% oversampl = 1.25; % MR.Parameter.Encoding.KxOversampling;
+% acqFOV = [300 300 300]; % MR.Parameter.Scan.FOV; % actualFOV = acqFOV * 2; % because it is 3D radial 
+% acqRes = [2.2059 2.2059 2.2059]; % MR.Parameter.Scan.AcqVoxelSize;
+% acqImageSize = acqFOV./acqRes; % of the selected FOV, not the oversampled one
+% recRes = [2.0833 2.0833 2.0833]; % MR.Parameter.Scan.RecVoxelSize;
+% desiredRes = recRes; % [2 2 2];
+% recImageSize = uint32(round(oversampl*(acqFOV./desiredRes)));
+% recImageSize_nooversampl = uint32(round((acqFOV./desiredRes)));
+% k_factor_for_interp = desiredRes/acqRes;
+% k = k*k_factor_for_interp;
 
 %% compute the DCF density compensation function
 kdataloc = reshape(kdata,[nx*ntviews*nz nc]);
@@ -32,17 +43,7 @@ osf = 2.1; numIter = 30;
 DCF = sdc3_MAT(k4dcf,numIter,effMtx,verbose,osf,pre);
 % DCF = permute(DCF,[2 1]);
 
-%% choose recon resolution
-oversampl = 1.25; % MR.Parameter.Encoding.KxOversampling;
-acqFOV = [300 300 300]; % MR.Parameter.Scan.FOV; % actualFOV = acqFOV * 2; % because it is 3D radial 
-acqRes = [2.2059 2.2059 2.2059]; % MR.Parameter.Scan.AcqVoxelSize;
-acqImageSize = acqFOV./acqRes; % of the selected FOV, not the oversampled one
-recRes = [2.0833 2.0833 2.0833]; % MR.Parameter.Scan.RecVoxelSize;
-desiredRes = recRes; % [2 2 2];
-recImageSize = uint32(round(oversampl*(acqFOV./desiredRes)));
-recImageSize_nooversampl = uint32(round((acqFOV./desiredRes)));
-k_factor_for_interp = desiredRes/acqRes;
-k = k*k_factor_for_interp;
+
 
 %% coil combination 
 images = sum(channel_images .* conj(csm),4)./coil_rss; %imagine(images) % images from MRrecon
