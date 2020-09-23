@@ -17,8 +17,12 @@ imin = I;
 imax = I;
 
 while downval>M*0.1 && upval>M*0.1
-    imin = imin-1;
-    imax = imax+1;
+    if imin>1
+        imin = imin-1;
+    end
+    if imax<size(af1,1)
+        imax = imax+1;
+    end
     downval = af1(imin);
     upval = af1(imax);
 end
