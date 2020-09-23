@@ -9,7 +9,7 @@ addpath(genpath('.\CODES\'))
 % addpath(genpath('D:\Projects_D\SequenceDevelopement\CODES_2018\gpuNUFFT-master'))
 
 %% define data
-datafolder = '.\DATA_PH\';
+datafolder = 'D:\Work\Post-doc MRI\DATA\';
 
 filename = 'ph_11072019_2035184_5_2_wip_phyllo_classicV4';
 load([datafolder filename '_coils']);
